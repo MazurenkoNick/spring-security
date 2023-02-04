@@ -13,35 +13,21 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Configuration
-public class ProjectSecurityConfig {
+import javax.sql.DataSource;
 
-    //
+@Configuration
+public class SecurityConfig {
+
+    // Adding custom security requirements
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests()
                 .requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans").authenticated()
-                .requestMatchers("/contact", "/notices").permitAll()
+                .requestMatchers("/contact", "/notices", "/register").permitAll()
             .and().formLogin()
             .and().httpBasic();
 
         return http.build();
-    }
-
-    // Initializing users with InMemoryUserDetailsManager
-    @Bean
-    public InMemoryUserDetailsManager inMemoryUserDetailsManager() {
-        UserDetails admin = User.withUsername("admin")
-                                .password("12345")
-                                .authorities("admin")
-                                .build();
-
-        UserDetails user1 = User.withUsername("user")
-                                .password("12345")
-                                .authorities("user")
-                                .build();
-
-        return new InMemoryUserDetailsManager(user1, admin);
     }
 
     // Setting no password encoder (not for production)
