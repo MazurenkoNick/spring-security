@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 @Service
 public class CustomerService {
 
@@ -27,6 +29,7 @@ public class CustomerService {
         // hashing password of the user before saving
         String password = customer.getPassword();
         customer.setPassword(passwordEncoder.encode(password));
+        customer.setCreateDt(new Date(System.currentTimeMillis()));
 
         customerRepository.save(customer);
     }
