@@ -24,7 +24,7 @@ public class Accounts {
     private String accountType;
 
     @Column(name="branch_address")
-    private Long branchAddress;
+    private String branchAddress;
 
     @Column(name="create_dt")
     private Date createDt;
