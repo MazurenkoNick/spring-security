@@ -60,8 +60,11 @@ public class SecurityConfig {
                  */
             })
             .and()
-                .csrf((csrf) -> csrf.csrfTokenRequestHandler(requestHandler).ignoringRequestMatchers("/contact","/register")
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .csrf((csrf) -> csrf
+                    .csrfTokenRequestHandler(requestHandler)
+                    .ignoringRequestMatchers("/register")
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                )
             .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
             .authorizeHttpRequests()
             .requestMatchers("/myAccount","/myBalance","/myLoans","/myCards", "/user").authenticated()
