@@ -4,7 +4,9 @@ import com.mazurenko.springsecuritybasic.filter.CsrfCookieFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,14 +28,13 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
-        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
-        requestHandler.setCsrfRequestAttributeName("_csrf");
+        CsrfTokenRequestAttributeHandler csrfRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
 
         /**
          *  From Spring Security 6, below actions will not happen by default,
          *  1) The Authentication details will not be saved automatically into SecurityContextHolder. To change this behaviour either we need to save
          *      these details explicitly into SecurityContextHolder or we can configure securityContext().requireExplicitSave(false) like shown below.
-         *  2) The Session & JSessionID will not be created by default. Inorder to create a session after intial login, we need to configure
+         *  2) The Session & JSessionID will not be created by default. In order to create a session after initial login, we need to configure
          *      sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)) like shown below.
          */
         http.securityContext().requireExplicitSave(false)
@@ -51,7 +52,7 @@ public class SecurityConfig {
                     return config;
                 }
                 /**
-                 *  In Spring Security 5, the default behavior is that the CsrfToken will be loaded on every request. Where as with
+                 *  In Spring Security 5, the default behavior is that the CsrfToken will be loaded on every request. Whereas with
                  *  Spring Security 6, the default is that the lookup of the CsrfToken will be deferred until it is needed. The developer
                  *  has to write logic to read the CSRF token and send it as part of the response. When framework sees the CSRF token
                  *  in the response header, it takes care of sending the same as Cookie as well. For the same, we need to use CsrfTokenRequestAttributeHandler
@@ -60,10 +61,10 @@ public class SecurityConfig {
                  */
             })
             .and()
-                .csrf((csrf) -> csrf
-                    .csrfTokenRequestHandler(requestHandler)
-                    .ignoringRequestMatchers("/register")
+                .csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer
+                    .csrfTokenRequestHandler(csrfRequestAttributeHandler)
                     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .ignoringRequestMatchers("/register")
                 )
             .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
             .authorizeHttpRequests()
