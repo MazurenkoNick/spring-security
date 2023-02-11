@@ -61,19 +61,23 @@ public class SecurityConfig {
                  */
             })
             .and()
-                .csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer
+            .csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer
                     .csrfTokenRequestHandler(csrfRequestAttributeHandler)
                     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                     .ignoringRequestMatchers("/register")
                 )
             .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
             .authorizeHttpRequests()
-            .requestMatchers("/myAccount","/myBalance","/myLoans","/myCards", "/user").authenticated()
-            .requestMatchers("/notices","/contact","/register").permitAll()
+                .requestMatchers("/notices","/contact","/register").permitAll()
+                .requestMatchers("/user").authenticated()
+                .requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
+                .requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
+                .requestMatchers("/myCards").hasAuthority("VIEWCARDS")
+                .requestMatchers("/myBalance").hasAnyAuthority("VIEWACCOUNT", "VIEWBALANCE")
             .and()
-                .formLogin()
+            .formLogin()
             .and()
-                .httpBasic();
+            .httpBasic();
         return http.build();
     }
 
