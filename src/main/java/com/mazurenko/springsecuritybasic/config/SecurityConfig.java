@@ -1,6 +1,7 @@
 package com.mazurenko.springsecuritybasic.config;
 
 import com.mazurenko.springsecuritybasic.filter.CsrfCookieFilter;
+import com.mazurenko.springsecuritybasic.filter.NameValidationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,6 +65,7 @@ public class SecurityConfig {
                     .ignoringRequestMatchers("/register")
                 )
             .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+            .addFilterBefore(new NameValidationFilter(), BasicAuthenticationFilter.class)
             .authorizeHttpRequests()
                 .requestMatchers("/notices","/contact","/register").permitAll()
                 .requestMatchers("/user").authenticated()

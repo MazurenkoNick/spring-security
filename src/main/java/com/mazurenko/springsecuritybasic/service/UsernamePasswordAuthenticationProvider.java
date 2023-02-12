@@ -45,7 +45,7 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
         }
 
         String password = authentication.getCredentials().toString();
-        // retrieve authorities of the user (customer) and convert them to GrantedAuthority list
+        // retrieve authorities / roles of the user (customer) and convert them to GrantedAuthority list
         List<GrantedAuthority> grantedAuthorities = getGrantedAuthorities(user.getAuthorities());
 
         // if passwords match - return UsernamePasswordAuthenticationToken;
