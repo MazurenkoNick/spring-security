@@ -22,9 +22,9 @@ public class NameValidationFilter implements Filter {
 
         if (request.getHeader("Authorization") != null) {
             UsernamePasswordAuthenticationToken user = authenticationConverter.convert(request);
-            if (user.getName().toLowerCase().trim().contains("test")) {
+            if (user.getName().toLowerCase().trim().contains(".ru")) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                System.out.println("ERROR: USER'S NAME CAN'T CONTAIN 'test' DURING LOGIN");
+                System.out.println("ERROR: USER'S NAME CAN'T CONTAIN '.ru' DURING LOGIN");
                 return;
             }
         }

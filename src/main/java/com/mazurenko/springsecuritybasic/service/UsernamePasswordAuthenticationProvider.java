@@ -1,70 +1,49 @@
 package com.mazurenko.springsecuritybasic.service;
 
-import com.mazurenko.springsecuritybasic.entity.Authority;
-import com.mazurenko.springsecuritybasic.entity.Customer;
-import com.mazurenko.springsecuritybasic.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 
 @Component
 public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
-    CustomerRepository customerRepository;
+
+    SqlUserDetailsService userDetailsService;
     PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UsernamePasswordAuthenticationProvider(CustomerRepository customerRepository, PasswordEncoder passwordEncoder) {
-        this.customerRepository = customerRepository;
+    public UsernamePasswordAuthenticationProvider(SqlUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+        this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
-        Customer user;
+        UserDetails user;
 
         // if user doesn't exist - throw an exception
         try {
-            user = customerRepository.findByEmail(username);
+            user = userDetailsService.loadUserByUsername(username);
         }
         catch (UsernameNotFoundException e) {
             throw new BadCredentialsException(e.getMessage());
         }
 
         String password = authentication.getCredentials().toString();
-        // retrieve authorities / roles of the user (customer) and convert them to GrantedAuthority list
-        List<GrantedAuthority> grantedAuthorities = getGrantedAuthorities(user.getAuthorities());
 
         // if passwords match - return UsernamePasswordAuthenticationToken;
         if (passwordEncoder.matches(password, user.getPassword())) {
-            return new UsernamePasswordAuthenticationToken(username, password, grantedAuthorities);
+            return new UsernamePasswordAuthenticationToken(username, password, user.getAuthorities());
         }
         else throw new BadCredentialsException("Invalid password!");
-    }
-
-    // method that converts authorities from the database to the GrantedAuthority list
-    private List<GrantedAuthority> getGrantedAuthorities(Collection<? extends Authority> authorities) {
-        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-
-        authorities.stream()
-                .map(Authority::getName)
-                .map(SimpleGrantedAuthority::new)
-                .forEach(grantedAuthorities::add);
-
-        return grantedAuthorities;
     }
 
     @Override

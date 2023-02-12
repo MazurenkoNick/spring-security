@@ -4,7 +4,6 @@ package com.mazurenko.springsecuritybasic.service;
 import com.mazurenko.springsecuritybasic.entity.Customer;
 import com.mazurenko.springsecuritybasic.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,10 +30,12 @@ public class SqlUserDetailsService implements UserDetailsService {
         if (customer == null) {
             throw new UsernameNotFoundException("User " + username + " was not found");
         }
-        // filling UserDetails (User) with authorities, password, username
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(customer.getRole());
-        List<GrantedAuthority> authorities = List.of(authority);
+        // filling UserDetails (User) with authorities, password, username from the database
         String password = customer.getPassword();
+        List<SimpleGrantedAuthority> authorities = customer.getAuthorities()
+                .stream()
+                .map(authority -> new SimpleGrantedAuthority(authority.getName()))
+                .toList();
 
         return new User(username, password, authorities);
     }
