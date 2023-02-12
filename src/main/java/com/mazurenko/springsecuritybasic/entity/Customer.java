@@ -26,6 +26,10 @@ public class Customer {
     @OneToMany(mappedBy="customer", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
     private List<Authority> authorities;
 
+    @JsonIgnore
+    @OneToMany(mappedBy="customer", cascade=CascadeType.ALL)
+    private List<Accounts> accounts;
+
     @Column(name="name")
     private String name;
 

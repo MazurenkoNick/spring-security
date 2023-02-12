@@ -12,8 +12,9 @@ import java.util.Date;
 @Table(name="accounts")
 public class Accounts {
 
-    @Column(name="customer_id")
-    private Long customerId;
+    @ManyToOne
+    @JoinColumn(name="customer_id")
+    private Customer customer;
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
