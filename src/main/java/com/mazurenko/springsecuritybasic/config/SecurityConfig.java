@@ -70,7 +70,7 @@ public class SecurityConfig {
                 .requestMatchers("/notices","/contact","/register").permitAll()
                 .requestMatchers("/user").authenticated()
                 .requestMatchers("/myAccount").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/myLoans").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/myLoans/**").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/myCards").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
             .and()
