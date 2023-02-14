@@ -1,5 +1,6 @@
-package com.mazurenko.springsecuritybasic.service;
+package com.mazurenko.springsecuritybasic.provider;
 
+import com.mazurenko.springsecuritybasic.service.SqlUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;

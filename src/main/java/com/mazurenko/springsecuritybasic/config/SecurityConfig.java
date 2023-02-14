@@ -1,8 +1,11 @@
 package com.mazurenko.springsecuritybasic.config;
 
 import com.mazurenko.springsecuritybasic.filter.CsrfCookieFilter;
+import com.mazurenko.springsecuritybasic.filter.JwtTokenGeneratorFilter;
+import com.mazurenko.springsecuritybasic.filter.JwtTokenValidationFilter;
 import com.mazurenko.springsecuritybasic.filter.NameValidationFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,10 +20,20 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Collections;
+import java.util.List;
 
 
 @Configuration
 public class SecurityConfig {
+
+    @Autowired
+    CsrfCookieFilter csrfCookieFilter;
+    @Autowired
+    JwtTokenValidationFilter jwtTokenValidationFilter;
+    @Autowired
+    JwtTokenGeneratorFilter jwtTokenGeneratorFilter;
+    @Autowired
+    NameValidationFilter nameValidationFilter;
 
     // Adding custom security requirements
     @Bean
@@ -29,15 +42,13 @@ public class SecurityConfig {
         CsrfTokenRequestAttributeHandler csrfRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
 
         /**
-         *  From Spring Security 6, below actions will not happen by default,
-         *  1) The Authentication details will not be saved automatically into SecurityContextHolder. To change this behaviour either we need to save
-         *      these details explicitly into SecurityContextHolder or we can configure securityContext().requireExplicitSave(false) like shown below.
-         *  2) The Session & JSessionID will not be created by default. In order to create a session after initial login, we need to configure
-         *      sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)) like shown below.
+         *  From Spring Security 6, The Authentication details will not be saved automatically into SecurityContextHolder. To change this behaviour either we
+         *  need to save these details explicitly into SecurityContextHolder or we can configure securityContext().requireExplicitSave(false) like shown below.
+         *  We set SessionCreationPolicy.STATELESS to sessionCreationPolicy, which means never create an HttpSession. We'll take care of creating our own SessionManagement
          */
         http.securityContext().requireExplicitSave(false)
             .and()
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .cors().configurationSource(new CorsConfigurationSource() {
                 @Override
                 public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
@@ -47,6 +58,7 @@ public class SecurityConfig {
                     config.setAllowCredentials(true);
                     config.setAllowedHeaders(Collections.singletonList("*"));
                     config.setMaxAge(3600L);
+                    config.setExposedHeaders(List.of("Authorization")); // allows set the list of response headers other than simple headers
                     return config;
                 }
                 /**
@@ -64,8 +76,10 @@ public class SecurityConfig {
                     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                     .ignoringRequestMatchers("/register")
                 )
-            .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
-            .addFilterBefore(new NameValidationFilter(), BasicAuthenticationFilter.class)
+            .addFilterAfter(csrfCookieFilter, BasicAuthenticationFilter.class)
+            .addFilterBefore(nameValidationFilter, BasicAuthenticationFilter.class)
+            .addFilterBefore(jwtTokenValidationFilter, BasicAuthenticationFilter.class)
+            .addFilterAfter(jwtTokenGeneratorFilter, BasicAuthenticationFilter.class)
             .authorizeHttpRequests()
                 .requestMatchers("/notices","/contact","/register").permitAll()
                 .requestMatchers("/user").authenticated()
