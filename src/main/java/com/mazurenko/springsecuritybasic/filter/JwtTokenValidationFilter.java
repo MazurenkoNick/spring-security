@@ -28,7 +28,7 @@ public class JwtTokenValidationFilter extends OncePerRequestFilter {
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String jwt = request.getHeader(SecurityConstants.JWT_HEADER);
+        String jwt = request.getHeader("Authorization");
 
         if (jwt != null) {
             try {
@@ -41,20 +41,18 @@ public class JwtTokenValidationFilter extends OncePerRequestFilter {
                         .parseClaimsJws(jwt)
                         .getBody();
 
-                System.out.println(SecurityContextHolder.getContext().getAuthentication());
-
                 String jwtUsername = String.valueOf(claims.get("username"));
                 String jwtAuthorities = (String) claims.get("authorities");
 
                 // Save Authentication details & manually set the SecurityContext containing the Authentication in the HTTP session
                 Authentication auth = new UsernamePasswordAuthenticationToken(jwtUsername, null,
                         AuthorityUtils.commaSeparatedStringToAuthorityList(jwtAuthorities));
-
+                
                 SecurityContext securityContext = SecurityContextHolder.getContext();
                 securityContext.setAuthentication(auth);
 
             } catch (Exception e) {
-                throw new BadCredentialsException("Invalid Token received!");
+                throw new BadCredentialsException("Invalid Token received!" + e.getMessage());
             }
 
         }

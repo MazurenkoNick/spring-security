@@ -14,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -26,14 +25,19 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    @Autowired
     CsrfCookieFilter csrfCookieFilter;
-    @Autowired
     JwtTokenValidationFilter jwtTokenValidationFilter;
-    @Autowired
     JwtTokenGeneratorFilter jwtTokenGeneratorFilter;
-    @Autowired
     NameValidationFilter nameValidationFilter;
+
+    @Autowired
+    public SecurityConfig(CsrfCookieFilter csrfCookieFilter, JwtTokenValidationFilter jwtTokenValidationFilter,
+                          JwtTokenGeneratorFilter jwtTokenGeneratorFilter, NameValidationFilter nameValidationFilter) {
+        this.csrfCookieFilter = csrfCookieFilter;
+        this.jwtTokenValidationFilter = jwtTokenValidationFilter;
+        this.jwtTokenGeneratorFilter = jwtTokenGeneratorFilter;
+        this.nameValidationFilter = nameValidationFilter;
+    }
 
     // Adding custom security requirements
     @Bean
@@ -71,12 +75,12 @@ public class SecurityConfig {
                  */
             })
             .and()
-            .csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer
-                    .csrfTokenRequestHandler(csrfRequestAttributeHandler)
-                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                    .ignoringRequestMatchers("/register")
-                )
-            .addFilterAfter(csrfCookieFilter, BasicAuthenticationFilter.class)
+            .csrf().disable() // while using jwt token
+//            .csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer
+//                    .csrfTokenRequestHandler(csrfRequestAttributeHandler)
+//                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+//                    .ignoringRequestMatchers("/register")
+//                )
             .addFilterBefore(nameValidationFilter, BasicAuthenticationFilter.class)
             .addFilterBefore(jwtTokenValidationFilter, BasicAuthenticationFilter.class)
             .addFilterAfter(jwtTokenGeneratorFilter, BasicAuthenticationFilter.class)
